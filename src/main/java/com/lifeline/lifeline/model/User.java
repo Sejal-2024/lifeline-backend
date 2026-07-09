@@ -47,4 +47,8 @@ public class User {
     private String licenseNumber;
     private String hospitalId;
     private String vehicleId;
+
+
+    private String refreshToken;
+    private LocalDateTime refreshTokenExpiry;
 }

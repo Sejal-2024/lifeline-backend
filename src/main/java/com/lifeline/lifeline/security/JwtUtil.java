@@ -59,4 +59,19 @@ public class JwtUtil {
             return false;
         }
     }
+
+    @Value("${jwt.refresh-expiration}")
+    private long refreshExpirationMs;
+
+    public String generateRefreshToken(String email) {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + refreshExpirationMs);
+
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(now)
+                .expiration(expiry)
+                .signWith(getSigningKey())
+                .compact();
+    }
 }

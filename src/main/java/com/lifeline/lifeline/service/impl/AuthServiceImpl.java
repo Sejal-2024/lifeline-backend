@@ -105,15 +105,59 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new InvalidTokenException("User not found"));
 
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        String refreshToken = jwtUtil.generateRefreshToken(user.getEmail());
+
+        user.setRefreshToken(refreshToken);
+        user.setRefreshTokenExpiry(LocalDateTime.now().plusDays(7));
+        userRepository.save(user);
 
         return AuthResponse.builder()
-                .token(token)
+                .token(accessToken)
+                .refreshToken(refreshToken)
                 .userId(user.getId())
                 .fullName(user.getFullName())
                 .email(user.getEmail())
                 .role(user.getRole())
                 .build();
+
+
+    }
+
+    @Override
+    public AuthResponse refreshAccessToken(String refreshToken) {
+
+        User user = userRepository.findByRefreshToken(refreshToken)
+                .orElseThrow(() -> new InvalidTokenException("Invalid refresh token"));
+
+        if (user.getRefreshTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new InvalidTokenException("Refresh token expired. Please log in again.");
+        }
+
+        if (!jwtUtil.isTokenValid(refreshToken)) {
+            throw new InvalidTokenException("Refresh token is invalid.");
+        }
+
+        String newAccessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+
+        return AuthResponse.builder()
+                .token(newAccessToken)
+                .refreshToken(refreshToken)
+                .userId(user.getId())
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .build();
+    }
+
+    @Override
+    public void logout(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        user.setRefreshToken(null);
+        user.setRefreshTokenExpiry(null);
+        userRepository.save(user);
     }
 
     private void validateRoleSpecificFields(RegisterRequest request) {
@@ -156,4 +200,6 @@ public class AuthServiceImpl implements AuthService {
                 .enabled(user.isEnabled())
                 .build();
     }
+
+
 }
