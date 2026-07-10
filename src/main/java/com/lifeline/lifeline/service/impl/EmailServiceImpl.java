@@ -47,4 +47,21 @@ public class EmailServiceImpl implements EmailService {
         );
         mailSender.send(message);
     }
+
+    @Override
+    public void sendEmergencyAlertNotification(String toEmail, String contactName, String patientName, String mapsLink, String notes) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromAddress);
+        message.setTo(toEmail);
+        message.setSubject("EMERGENCY ALERT: " + patientName + " needs help");
+        message.setText(
+                "Hi " + contactName + ",\n\n" +
+                        patientName + " has triggered an emergency alert on LifeLine AI and listed you as an emergency contact.\n\n" +
+                        (notes != null && !notes.isBlank() ? "Details: " + notes + "\n\n" : "") +
+                        "Their location: " + mapsLink + "\n\n" +
+                        "Please try to reach them or contact emergency services if needed.\n\n" +
+                        "- LifeLine AI"
+        );
+        mailSender.send(message);
+    }
 }
