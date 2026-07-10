@@ -10,7 +10,12 @@ import com.lifeline.lifeline.repository.UserRepository;
 import com.lifeline.lifeline.service.GeocodingService;
 import com.lifeline.lifeline.service.HospitalService;
 import lombok.RequiredArgsConstructor;
+//import org.springframework.data.geo.Distance;
+//import org.springframework.data.geo.Metrics;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -23,6 +28,7 @@ public class HospitalServiceImpl implements HospitalService {
     private final HospitalRepository hospitalRepository;
     private final GeocodingService geocodingService;
     private final UserRepository userRepository;
+    private final MongoTemplate mongoTemplate;
 
     @Override
     public HospitalResponse registerHospital(RegisterHospitalRequest request, String adminEmail) {
@@ -83,5 +89,25 @@ public class HospitalServiceImpl implements HospitalService {
                 .availableBeds(hospital.getAvailableBeds())
                 .status(hospital.getStatus())
                 .build();
+    }
+
+    @Override
+    public List<HospitalResponse> findNearbyHospitals(double latitude, double longitude, double radiusKm) {
+
+        GeoJsonPoint point = new GeoJsonPoint(longitude, latitude);
+        double radiusInMeters = radiusKm * 1000;
+
+        Criteria criteria = Criteria.where("location")
+                .nearSphere(point)
+                .maxDistance(radiusInMeters)
+                .and("status").is(HospitalStatus.ACTIVE);
+
+        Query query = new Query(criteria);
+
+        List<Hospital> hospitals = mongoTemplate.find(query, Hospital.class);
+
+        return hospitals.stream()
+                .map(this::toResponse)
+                .toList();
     }
 }

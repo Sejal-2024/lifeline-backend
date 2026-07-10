@@ -9,4 +9,5 @@ public interface HospitalService {
     HospitalResponse registerHospital(RegisterHospitalRequest request, String adminUserId);
     List<HospitalResponse> getMyHospitals(String adminUserId);
     HospitalResponse getHospitalById(String id);
+    List<HospitalResponse> findNearbyHospitals(double latitude, double longitude, double radiusKm);
 }

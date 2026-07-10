@@ -39,4 +39,13 @@ public class HospitalController {
     public ResponseEntity<HospitalResponse> getHospitalById(@PathVariable String id) {
         return ResponseEntity.ok(hospitalService.getHospitalById(id));
     }
+
+    @GetMapping("/nearby")
+    public ResponseEntity<List<HospitalResponse>> findNearbyHospitals(
+            @RequestParam double latitude,
+            @RequestParam double longitude,
+            @RequestParam(defaultValue = "10") double radiusKm) {
+
+        return ResponseEntity.ok(hospitalService.findNearbyHospitals(latitude, longitude, radiusKm));
+    }
 }
