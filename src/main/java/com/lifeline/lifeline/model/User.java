@@ -51,4 +51,7 @@ public class User {
 
     private String refreshToken;
     private LocalDateTime refreshTokenExpiry;
+
+    private String resetPasswordToken;
+    private LocalDateTime resetPasswordTokenExpiry;
 }

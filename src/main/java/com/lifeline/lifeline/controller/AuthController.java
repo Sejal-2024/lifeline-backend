@@ -1,8 +1,6 @@
 package com.lifeline.lifeline.controller;
 
-import com.lifeline.lifeline.dto.request.LoginRequest;
-import com.lifeline.lifeline.dto.request.RefreshTokenRequest;
-import com.lifeline.lifeline.dto.request.RegisterRequest;
+import com.lifeline.lifeline.dto.request.*;
 import com.lifeline.lifeline.dto.response.AuthResponse;
 import com.lifeline.lifeline.service.AuthService;
 import jakarta.validation.Valid;
@@ -46,5 +44,17 @@ public class AuthController {
     public ResponseEntity<String> logout(Authentication authentication) {
         authService.logout(authentication.getName());
         return ResponseEntity.ok("Logged out successfully.");
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request.getEmail());
+        return ResponseEntity.ok("If an account with that email exists, a password reset link has been sent.");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ResponseEntity.ok("Password reset successfully. You can now log in with your new password.");
     }
 }

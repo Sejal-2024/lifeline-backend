@@ -2,6 +2,7 @@ package com.lifeline.lifeline.service.impl;
 
 import com.lifeline.lifeline.dto.request.LoginRequest;
 import com.lifeline.lifeline.dto.request.RegisterRequest;
+import com.lifeline.lifeline.dto.request.ResetPasswordRequest;
 import com.lifeline.lifeline.dto.response.AuthResponse;
 import com.lifeline.lifeline.dto.response.UserResponse;
 import com.lifeline.lifeline.exception.DuplicateResourceException;
@@ -175,9 +176,9 @@ public class AuthServiceImpl implements AuthService {
             require(request.getHospitalId(), "Hospital ID is required for ambulance drivers");
         }
 
-        if (role == Role.HOSPITAL_ADMIN) {
-            require(request.getHospitalId(), "Hospital ID is required for hospital admins");
-        }
+//        if (role == Role.HOSPITAL_ADMIN) {
+//            require(request.getHospitalId(), "Hospital ID is required for hospital admins");
+//        }
     }
 
     private void require(String value, String errorMessage) {
@@ -201,5 +202,31 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
 
+    @Override
+    public void forgotPassword(String email) {
+        userRepository.findByEmail(email).ifPresent(user -> {
+            String resetToken = UUID.randomUUID().toString();
+            user.setResetPasswordToken(resetToken);
+            user.setResetPasswordTokenExpiry(LocalDateTime.now().plusHours(1));
+            userRepository.save(user);
 
+            String resetLink = "http://localhost:5173/reset-password?token=" + resetToken;
+            emailService.sendPasswordResetEmail(user.getEmail(), user.getFullName(), resetLink);
+        });
+    }
+
+    @Override
+    public void resetPassword(ResetPasswordRequest request) {
+        User user = userRepository.findByResetPasswordToken(request.getToken())
+                .orElseThrow(() -> new InvalidTokenException("Invalid or expired reset token"));
+
+        if (user.getResetPasswordTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new InvalidTokenException("Reset token has expired");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setResetPasswordToken(null);
+        user.setResetPasswordTokenExpiry(null);
+        userRepository.save(user);
+    }
 }

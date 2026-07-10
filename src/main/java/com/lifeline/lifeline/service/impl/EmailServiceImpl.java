@@ -31,4 +31,20 @@ public class EmailServiceImpl implements EmailService {
         );
         mailSender.send(message);
     }
+
+    @Override
+    public void sendPasswordResetEmail(String toEmail, String fullName, String resetLink) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromAddress);
+        message.setTo(toEmail);
+        message.setSubject("Reset your LifeLine AI password");
+        message.setText(
+                "Hi " + fullName + ",\n\n" +
+                        "We received a request to reset your password. Click the link below:\n" +
+                        resetLink + "\n\n" +
+                        "This link expires in 1 hour. If you didn't request this, you can ignore this email.\n\n" +
+                        "- LifeLine AI Team"
+        );
+        mailSender.send(message);
+    }
 }
