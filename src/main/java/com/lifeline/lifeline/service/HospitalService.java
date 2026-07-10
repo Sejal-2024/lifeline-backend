@@ -10,4 +10,5 @@ public interface HospitalService {
     List<HospitalResponse> getMyHospitals(String adminUserId);
     HospitalResponse getHospitalById(String id);
     List<HospitalResponse> findNearbyHospitals(double latitude, double longitude, double radiusKm);
+    HospitalResponse updateBedAvailability(String hospitalId, int availableBeds, String adminEmail);
 }

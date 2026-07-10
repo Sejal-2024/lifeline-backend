@@ -110,4 +110,29 @@ public class HospitalServiceImpl implements HospitalService {
                 .map(this::toResponse)
                 .toList();
     }
+
+    @Override
+    public HospitalResponse updateBedAvailability(String hospitalId, int availableBeds, String adminEmail) {
+
+        Hospital hospital = hospitalRepository.findById(hospitalId)
+                .orElseThrow(() -> new ResourceNotFoundException("Hospital not found"));
+
+        String requestingUserId = userRepository.findByEmail(adminEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin user not found"))
+                .getId();
+
+        if (!hospital.getAdminUserId().equals(requestingUserId)) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "You do not have permission to update this hospital");
+        }
+
+        if (availableBeds > hospital.getTotalBeds() || availableBeds < 0) {
+            throw new IllegalArgumentException("Available beds must be between 0 and total beds");
+        }
+
+        hospital.setAvailableBeds(availableBeds);
+        hospitalRepository.save(hospital);
+
+        return toResponse(hospital);
+    }
 }

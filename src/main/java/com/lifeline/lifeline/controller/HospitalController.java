@@ -1,6 +1,7 @@
 package com.lifeline.lifeline.controller;
 
 import com.lifeline.lifeline.dto.request.RegisterHospitalRequest;
+import com.lifeline.lifeline.dto.request.UpdateBedsRequest;
 import com.lifeline.lifeline.dto.response.HospitalResponse;
 import com.lifeline.lifeline.service.HospitalService;
 import jakarta.validation.Valid;
@@ -47,5 +48,17 @@ public class HospitalController {
             @RequestParam(defaultValue = "10") double radiusKm) {
 
         return ResponseEntity.ok(hospitalService.findNearbyHospitals(latitude, longitude, radiusKm));
+    }
+
+    @PatchMapping("/{id}/beds")
+    @PreAuthorize("hasRole('HOSPITAL_ADMIN')")
+    public ResponseEntity<HospitalResponse> updateBeds(
+            @PathVariable String id,
+            @Valid @RequestBody UpdateBedsRequest request,
+            Authentication authentication) {
+
+        return ResponseEntity.ok(
+                hospitalService.updateBedAvailability(id, request.getAvailableBeds(), authentication.getName())
+        );
     }
 }
