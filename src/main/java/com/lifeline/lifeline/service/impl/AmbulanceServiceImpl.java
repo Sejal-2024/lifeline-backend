@@ -13,6 +13,7 @@ import com.lifeline.lifeline.repository.HospitalRepository;
 import com.lifeline.lifeline.repository.UserRepository;
 import com.lifeline.lifeline.service.AmbulanceService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +26,7 @@ public class AmbulanceServiceImpl implements AmbulanceService {
     private final AmbulanceRepository ambulanceRepository;
     private final HospitalRepository hospitalRepository;
     private final UserRepository userRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Override
     public AmbulanceResponse registerAmbulance(String hospitalId, RegisterAmbulanceRequest request, String adminEmail) {
@@ -155,5 +157,28 @@ public class AmbulanceServiceImpl implements AmbulanceService {
                 .latitude(lat)
                 .longitude(lng)
                 .build();
+    }
+
+    @Override
+    public AmbulanceResponse updateLocation(String ambulanceId, double latitude, double longitude, String driverEmail) {
+
+        Ambulance ambulance = ambulanceRepository.findById(ambulanceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ambulance not found"));
+
+        User driver = userRepository.findByEmail(driverEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (!driver.getId().equals(ambulance.getDriverUserId())) {
+            throw new AccessDeniedException("You are not the assigned driver for this ambulance");
+        }
+
+        ambulance.setCurrentLocation(new org.springframework.data.mongodb.core.geo.GeoJsonPoint(longitude, latitude));
+        ambulanceRepository.save(ambulance);
+
+        AmbulanceResponse response = toResponse(ambulance);
+
+        messagingTemplate.convertAndSend("/topic/ambulance/" + ambulanceId, response);
+
+        return response;
     }
 }

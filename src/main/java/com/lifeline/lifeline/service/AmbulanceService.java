@@ -10,4 +10,5 @@ public interface AmbulanceService {
     List<AmbulanceResponse> getAmbulancesByHospital(String hospitalId);
     AmbulanceResponse assignDriver(String ambulanceId, String driverUserId, String adminEmail);
     AmbulanceResponse updateStatus(String ambulanceId, String status, String requesterEmail);
+    AmbulanceResponse updateLocation(String ambulanceId, double latitude, double longitude, String driverEmail);
 }

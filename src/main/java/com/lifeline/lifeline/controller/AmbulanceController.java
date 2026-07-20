@@ -60,4 +60,17 @@ public class AmbulanceController {
                 ambulanceService.updateStatus(ambulanceId, status, authentication.getName())
         );
     }
+
+    @PostMapping("/{ambulanceId}/location")
+    public ResponseEntity<AmbulanceResponse> updateLocation(
+            @PathVariable String hospitalId,
+            @PathVariable String ambulanceId,
+            @RequestParam double latitude,
+            @RequestParam double longitude,
+            Authentication authentication) {
+
+        return ResponseEntity.ok(
+                ambulanceService.updateLocation(ambulanceId, latitude, longitude, authentication.getName())
+        );
+    }
 }
